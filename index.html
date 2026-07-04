@@ -47,6 +47,96 @@
       cursor: pointer;
     }
 
+    body.locked {
+      overflow: hidden;
+    }
+
+    body.locked .app {
+      display: none;
+    }
+
+    .login-screen {
+      min-height: 100vh;
+      display: none;
+      place-items: center;
+      padding: 24px;
+    }
+
+    body.locked .login-screen {
+      display: grid;
+    }
+
+    .login-card {
+      width: min(920px, 100%);
+      min-height: min(620px, calc(100vh - 48px));
+      display: grid;
+      grid-template-columns: minmax(300px, 0.85fr) minmax(320px, 1fr);
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+    }
+
+    .login-copy {
+      display: grid;
+      align-content: center;
+      gap: 18px;
+      padding: 28px;
+      min-width: 0;
+    }
+
+    .login-copy .mark {
+      width: 58px;
+      height: 40px;
+    }
+
+    .login-copy h1 {
+      font-size: clamp(34px, 6vw, 58px);
+      line-height: 0.95;
+      margin-top: 12px;
+    }
+
+    .login-form {
+      display: grid;
+      gap: 10px;
+      max-width: 360px;
+    }
+
+    .login-error {
+      min-height: 18px;
+      margin: 0;
+      color: var(--bad);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .login-photo-wrap {
+      position: relative;
+      min-height: 420px;
+      overflow: hidden;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .login-photo-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(166, 76, 115, 0.18));
+      pointer-events: none;
+    }
+
+    .login-photo {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center 35%;
+    }
+
     .app {
       width: min(1480px, calc(100% - 32px));
       margin: 0 auto;
@@ -1075,6 +1165,24 @@
     }
 
     @media (max-width: 680px) {
+      .login-screen {
+        padding: 10px;
+      }
+
+      .login-card {
+        min-height: calc(100vh - 20px);
+        grid-template-columns: 1fr;
+      }
+
+      .login-copy {
+        padding: 18px;
+      }
+
+      .login-photo-wrap {
+        min-height: 280px;
+        order: -1;
+      }
+
       .app {
         width: min(100% - 20px, 1480px);
         padding-top: 10px;
@@ -1145,7 +1253,29 @@
     }
   </style>
 </head>
-<body>
+<body class="locked">
+  <section class="login-screen" id="loginScreen" aria-label="LOW login">
+    <div class="login-card">
+      <div class="login-copy">
+        <div class="mark">LOW</div>
+        <div>
+          <h1>Welcome LOW</h1>
+          <p class="subtitle">Enter the private password to open Laura's budget studio.</p>
+        </div>
+        <form class="login-form" id="loginForm">
+          <label>
+            <span class="label-text">Password</span>
+            <input id="loginPassword" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter password" />
+          </label>
+          <button class="primary-button" type="submit">Unlock</button>
+          <p class="login-error" id="loginError" role="alert"></p>
+        </form>
+      </div>
+      <div class="login-photo-wrap">
+        <img class="login-photo" src="assets/login-low.jpeg" alt="LOW login photo" />
+      </div>
+    </div>
+  </section>
   <main class="app">
     <header class="topbar">
       <div class="brand">
@@ -1412,6 +1542,34 @@
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0
+    });
+
+    const loginPassword = "1939";
+    const loginForm = document.querySelector("#loginForm");
+    const loginInput = document.querySelector("#loginPassword");
+    const loginError = document.querySelector("#loginError");
+
+    function unlockApp() {
+      document.body.classList.remove("locked");
+      sessionStorage.setItem("lowBudgetUnlocked", "true");
+    }
+
+    if (sessionStorage.getItem("lowBudgetUnlocked") === "true") {
+      unlockApp();
+    } else {
+      loginInput.focus();
+    }
+
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (loginInput.value === loginPassword) {
+        loginInput.value = "";
+        loginError.textContent = "";
+        unlockApp();
+        return;
+      }
+      loginError.textContent = "Incorrect password. Try again.";
+      loginInput.select();
     });
 
     const inputs = {
