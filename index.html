@@ -751,7 +751,9 @@
     }
 
     body.dashboard-mode .dashboard-only {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     body.dashboard-mode .grid {
@@ -794,7 +796,6 @@
       grid-template-columns: minmax(320px, 0.78fr) minmax(0, 1.22fr);
       gap: 12px;
       padding: 12px;
-      margin-bottom: 12px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background:
@@ -928,6 +929,29 @@
       font-size: 12px;
       line-height: 1.35;
       margin: 0;
+    }
+
+    .trip-panel.collapsed .panel-body {
+      padding-top: 0;
+    }
+
+    .trip-panel.collapsed .trip-plan {
+      grid-template-columns: 1fr;
+      padding: 10px 12px 12px;
+    }
+
+    .trip-panel.collapsed .trip-fields,
+    .trip-panel.collapsed .trip-summary,
+    .trip-panel.collapsed .trip-milestones {
+      display: none;
+    }
+
+    .trip-panel.collapsed .trip-visual {
+      gap: 0;
+    }
+
+    .trip-panel.collapsed .trip-progress {
+      min-height: 74px;
     }
 
     .contribution-row {
@@ -1084,18 +1108,24 @@
 
       body.dashboard-mode .dashboard-only {
         display: flex;
+        flex-direction: column;
+        gap: 12px;
         flex: 1;
         min-height: 0;
       }
 
-      body.dashboard-mode .dashboard-only > .panel {
+      body.dashboard-mode .trip-panel {
+        flex: 0 0 auto;
+      }
+
+      body.dashboard-mode .reports-panel {
         flex: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
       }
 
-      body.dashboard-mode .dashboard-only .panel-body {
+      body.dashboard-mode .reports-panel > .panel-body {
         flex: 1;
         min-height: 0;
         overflow: auto;
@@ -1392,7 +1422,69 @@
         </div>
 
         <div class="dashboard-only">
-          <div class="panel">
+          <div class="panel trip-panel" id="tripPanel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Trip Saving Report</h2>
+                <p class="panel-note">Protected travel money, separate from emergency buffer and main savings.</p>
+              </div>
+              <button class="soft-button" type="button" id="toggleTripPlan" aria-expanded="true">Close</button>
+            </div>
+            <div class="panel-body">
+              <section class="trip-plan" aria-label="Trip savings plan">
+                <div class="trip-fields">
+                  <label>
+                    <span class="label-text">Trip goal</span>
+                    <input id="tripName" type="text" value="Japan trip" />
+                  </label>
+                  <label>
+                    <span class="label-text">Goal amount</span>
+                    <span class="unit-field" data-prefix="$">
+                      <input id="tripGoal" type="number" min="0" step="50" value="2500" />
+                    </span>
+                  </label>
+                  <label>
+                    <span class="label-text">Saved for trip</span>
+                    <span class="unit-field" data-prefix="$">
+                      <input id="tripSaved" type="number" min="0" step="25" value="400" />
+                    </span>
+                  </label>
+                  <label>
+                    <span class="label-text">Target date</span>
+                    <input id="tripDeadline" type="date" value="2026-12-15" />
+                  </label>
+                  <div class="contribution-row">
+                    <label>
+                      <span class="label-text">Add contribution</span>
+                      <span class="unit-field" data-prefix="$">
+                        <input id="tripContribution" type="number" min="0" step="25" value="100" />
+                      </span>
+                    </label>
+                    <button class="primary-button" type="button" id="addTripContribution">Add</button>
+                  </div>
+                </div>
+                <div class="trip-visual">
+                  <div class="trip-summary" id="tripSummary"></div>
+                  <div class="trip-progress">
+                    <p class="trip-message" id="tripMessage"></p>
+                    <div class="trip-track" aria-hidden="true">
+                      <i class="trip-fill" id="tripFill"></i>
+                      <b class="trip-marker" id="tripMarker">GO</b>
+                    </div>
+                    <div class="trip-milestones">
+                      <span>Start</span>
+                      <span>25%</span>
+                      <span>50%</span>
+                      <span>75%</span>
+                      <span>Trip ready</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div class="panel reports-panel">
             <div class="panel-header">
               <div>
                 <h2 class="panel-title">Live Expense Reports</h2>
@@ -1452,61 +1544,6 @@
                 </div>
                 <button class="soft-button" type="button" id="seedMonth">Use Sample Month</button>
               </div>
-
-              <section class="trip-plan" aria-label="Trip savings plan">
-                <div class="trip-heading">
-                  <strong>Trip Savings Plan</strong>
-                  <span>Protected travel money, separate from emergency buffer and main savings.</span>
-                </div>
-                <div class="trip-fields">
-                  <label>
-                    <span class="label-text">Trip goal</span>
-                    <input id="tripName" type="text" value="Japan trip" />
-                  </label>
-                  <label>
-                    <span class="label-text">Goal amount</span>
-                    <span class="unit-field" data-prefix="$">
-                      <input id="tripGoal" type="number" min="0" step="50" value="2500" />
-                    </span>
-                  </label>
-                  <label>
-                    <span class="label-text">Saved for trip</span>
-                    <span class="unit-field" data-prefix="$">
-                      <input id="tripSaved" type="number" min="0" step="25" value="400" />
-                    </span>
-                  </label>
-                  <label>
-                    <span class="label-text">Target date</span>
-                    <input id="tripDeadline" type="date" value="2026-12-15" />
-                  </label>
-                  <div class="contribution-row">
-                    <label>
-                      <span class="label-text">Add contribution</span>
-                      <span class="unit-field" data-prefix="$">
-                        <input id="tripContribution" type="number" min="0" step="25" value="100" />
-                      </span>
-                    </label>
-                    <button class="primary-button" type="button" id="addTripContribution">Add</button>
-                  </div>
-                </div>
-                <div class="trip-visual">
-                  <div class="trip-summary" id="tripSummary"></div>
-                  <div class="trip-progress">
-                    <p class="trip-message" id="tripMessage"></p>
-                    <div class="trip-track" aria-hidden="true">
-                      <i class="trip-fill" id="tripFill"></i>
-                      <b class="trip-marker" id="tripMarker">GO</b>
-                    </div>
-                    <div class="trip-milestones">
-                      <span>Start</span>
-                      <span>25%</span>
-                      <span>50%</span>
-                      <span>75%</span>
-                      <span>Trip ready</span>
-                    </div>
-                  </div>
-                </div>
-              </section>
 
               <div class="split">
                 <div class="canvas-wrap">
@@ -1694,7 +1731,8 @@
       goal: 2500,
       saved: 400,
       deadline: "2026-12-15",
-      contribution: 100
+      contribution: 100,
+      collapsed: false
     };
 
     const getNumber = (id) => Number(inputs[id].value) || 0;
@@ -1791,6 +1829,7 @@
     function saveLocalDb() {
       const income = Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
       const trip = Object.fromEntries(Object.entries(tripInputs).map(([key, input]) => [key, input.value]));
+      trip.collapsed = Boolean(tripPlan.collapsed);
       localStorage.setItem(storageKey, JSON.stringify({ income, estimatorCategories, transactions, tripPlan: trip }));
     }
 
@@ -1830,7 +1869,8 @@
         goal: Math.max(0, Number(tripInputs.goal.value) || 0),
         saved: Math.max(0, Number(tripInputs.saved.value) || 0),
         deadline: tripInputs.deadline.value,
-        contribution: Math.max(0, Number(tripInputs.contribution.value) || 0)
+        contribution: Math.max(0, Number(tripInputs.contribution.value) || 0),
+        collapsed: Boolean(tripPlan.collapsed)
       };
     }
 
@@ -1846,11 +1886,17 @@
 
     function renderTripPlan() {
       const trip = getTripPlan();
+      const tripPanel = document.querySelector("#tripPanel");
+      const toggleButton = document.querySelector("#toggleTripPlan");
       const remaining = Math.max(0, trip.goal - trip.saved);
       const monthsLeft = getTripMonthsLeft(trip.deadline);
       const monthlyNeed = monthsLeft ? Math.ceil(remaining / monthsLeft) : remaining;
       const progress = trip.goal > 0 ? Math.min(100, Math.round(trip.saved / trip.goal * 100)) : 0;
       const isReady = progress >= 100;
+
+      tripPanel.classList.toggle("collapsed", trip.collapsed);
+      toggleButton.textContent = trip.collapsed ? "Open" : "Close";
+      toggleButton.setAttribute("aria-expanded", String(!trip.collapsed));
 
       document.querySelector("#tripSummary").innerHTML = [
         ["Saved", money.format(trip.saved)],
@@ -2224,6 +2270,12 @@
     document.querySelector("#addTripContribution").addEventListener("click", () => {
       const trip = getTripPlan();
       tripInputs.saved.value = trip.saved + trip.contribution;
+      renderTripPlan();
+      saveLocalDb();
+    });
+
+    document.querySelector("#toggleTripPlan").addEventListener("click", () => {
+      tripPlan.collapsed = !tripPlan.collapsed;
       renderTripPlan();
       saveLocalDb();
     });
