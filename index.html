@@ -315,15 +315,19 @@
       min-height: 18px;
     }
 
+    .category-card.expanded {
+      background: rgba(255, 255, 255, 0.78);
+    }
+
     .category-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 36px;
-      gap: 8px;
-      align-items: end;
+      grid-template-columns: 26px minmax(0, 1fr) auto 32px;
+      gap: 6px;
+      align-items: center;
     }
 
     .category-row.locked {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: 26px minmax(0, 1fr) auto;
     }
 
     .icon-button {
@@ -336,6 +340,61 @@
       color: var(--bad);
       background: rgba(255, 255, 255, 0.72);
       font-weight: 900;
+    }
+
+    .toggle-button {
+      width: 26px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      color: var(--accent-700);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(107, 43, 74, 0.12);
+      font-weight: 900;
+    }
+
+    .category-total {
+      color: var(--accent-700);
+      font-size: 13px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .category-items {
+      display: grid;
+      gap: 5px;
+      padding-top: 4px;
+    }
+
+    .category-items[hidden] {
+      display: none;
+    }
+
+    .spend-item-row,
+    .add-item-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 92px 28px;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .spend-item-row input,
+    .add-item-row input {
+      min-height: 28px;
+      padding: 4px 7px;
+      font-size: 12px;
+    }
+
+    .spend-item-row .icon-button,
+    .add-item-row .icon-button {
+      width: 28px;
+      height: 28px;
+      min-height: 28px;
+    }
+
+    .add-item-row .icon-button {
+      color: var(--accent-700);
     }
 
     .add-category {
@@ -882,8 +941,27 @@
         grid-template-columns: 1fr;
       }
 
+      .category-row {
+        grid-template-columns: 26px minmax(0, 1fr) auto 32px;
+      }
+
+      .category-row.locked {
+        grid-template-columns: 26px minmax(0, 1fr) auto;
+      }
+
+      .spend-item-row,
+      .add-item-row {
+        grid-template-columns: minmax(0, 1fr) 84px 28px;
+      }
+
       .icon-button {
         width: 100%;
+      }
+
+      .category-row .icon-button,
+      .spend-item-row .icon-button,
+      .add-item-row .icon-button {
+        width: 28px;
       }
 
       th:nth-child(2),
@@ -1051,6 +1129,7 @@
                     <span class="label-text">Report view</span>
                     <select id="reportView">
                       <option value="category">By category</option>
+                      <option value="item">By item</option>
                       <option value="week">By week</option>
                     </select>
                   </label>
@@ -1125,15 +1204,76 @@
       ["Buffer", "#e2b57f"]
     ];
 
+    const storageKey = "lowBudgetPlatformLocalDbV2";
     const categoryPalette = ["#c47a99", "#e8b8ca", "#aeb8bd", "#d9c894", "#c8bac2", "#b7c7dd", "#d7b7dd", "#b9d9cf", "#e2b57f"];
 
-    let estimatorCategories = [
-      { id: "rent", name: "Apartment rent", amount: 1850, min: 800, max: 4200, step: 25, color: categoryPalette[0], locked: true },
-      { id: "utilities", name: "Utilities and internet", amount: 260, min: 80, max: 650, step: 10, color: categoryPalette[1], locked: true },
-      { id: "transport", name: "Transportation", amount: 420, min: 0, max: 1200, step: 25, color: categoryPalette[2], locked: true },
-      { id: "food", name: "Groceries and dining", amount: 720, min: 250, max: 1400, step: 25, color: categoryPalette[3], locked: true },
-      { id: "lifestyle", name: "Gym, wellness, subscriptions", amount: 210, min: 0, max: 800, step: 10, color: categoryPalette[4], locked: true }
+    const defaultEstimatorCategories = [
+      {
+        id: "rent",
+        name: "Apartment rent",
+        amount: 1850,
+        color: categoryPalette[0],
+        locked: true,
+        expanded: false,
+        items: [{ id: "rent-base", name: "Base rent", amount: 1850 }]
+      },
+      {
+        id: "utilities",
+        name: "Utilities and internet",
+        amount: 260,
+        color: categoryPalette[1],
+        locked: true,
+        expanded: true,
+        items: [
+          { id: "utilities-power", name: "Utilities", amount: 60 },
+          { id: "utilities-wifi", name: "WiFi", amount: 75 },
+          { id: "utilities-phone", name: "Phone plan", amount: 65 },
+          { id: "utilities-amenities", name: "Apt amenities", amount: 60 }
+        ]
+      },
+      {
+        id: "transport",
+        name: "Transportation",
+        amount: 420,
+        color: categoryPalette[2],
+        locked: true,
+        expanded: false,
+        items: [
+          { id: "transport-transit", name: "Transit pass", amount: 120 },
+          { id: "transport-rideshare", name: "Rideshare", amount: 100 },
+          { id: "transport-parking", name: "Parking", amount: 120 },
+          { id: "transport-fuel", name: "Fuel", amount: 80 }
+        ]
+      },
+      {
+        id: "food",
+        name: "Groceries and dining",
+        amount: 720,
+        color: categoryPalette[3],
+        locked: true,
+        expanded: false,
+        items: [
+          { id: "food-groceries", name: "Groceries", amount: 480 },
+          { id: "food-dining", name: "Dining out", amount: 240 }
+        ]
+      },
+      {
+        id: "lifestyle",
+        name: "Gym, wellness, subscriptions",
+        amount: 210,
+        color: categoryPalette[4],
+        locked: true,
+        expanded: false,
+        items: [
+          { id: "lifestyle-gym", name: "Gym", amount: 80 },
+          { id: "lifestyle-wellness", name: "Wellness", amount: 50 },
+          { id: "lifestyle-streaming", name: "Streaming", amount: 45 },
+          { id: "lifestyle-subscriptions", name: "Subscriptions", amount: 35 }
+        ]
+      }
     ];
+
+    let estimatorCategories = structuredClone(defaultEstimatorCategories);
 
     const presets = {
       lean: { rent: 1450, utilities: 190, transport: 260, food: 540, lifestyle: 90 },
@@ -1141,7 +1281,7 @@
       comfort: { rent: 2450, utilities: 340, transport: 650, food: 920, lifestyle: 360 }
     };
 
-    let transactions = [
+    const defaultTransactions = [
       { name: "Rent", category: "Housing", amount: 1850, date: "2026-07-01" },
       { name: "Groceries", category: "Food", amount: 185, date: "2026-07-04" },
       { name: "Transit pass", category: "Transport", amount: 128, date: "2026-07-05" },
@@ -1153,10 +1293,13 @@
       { name: "Rideshare", category: "Transport", amount: 48, date: "2026-07-25" }
     ];
 
+    let transactions = structuredClone(defaultTransactions);
+
     const getNumber = (id) => Number(inputs[id].value) || 0;
     const getCategory = (id) => estimatorCategories.find((category) => category.id === id);
     const getCategoryAmount = (id) => getCategory(id)?.amount || 0;
     const getCategoryTotal = () => estimatorCategories.reduce((sum, category) => sum + category.amount, 0);
+    const getItemTotal = (category) => (category.items || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     const cleanCategoryName = (name) => name.trim() || "Untitled category";
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
       "&": "&amp;",
@@ -1170,8 +1313,106 @@
       return `custom-${Date.now()}-${Math.round(Math.random() * 1000)}`;
     }
 
+    function makeItemId() {
+      return `item-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+    }
+
     function categoryMaxFor(amount) {
       return Math.max(500, Math.ceil((amount * 2 || 500) / 50) * 50);
+    }
+
+    function normalizeCategory(category, index = 0) {
+      const normalized = {
+        id: category.id || makeCategoryId(),
+        name: cleanCategoryName(category.name || `Category ${index + 1}`),
+        amount: Number(category.amount) || 0,
+        color: category.color || categoryPalette[index % categoryPalette.length],
+        locked: Boolean(category.locked),
+        expanded: Boolean(category.expanded),
+        items: Array.isArray(category.items) ? category.items : []
+      };
+
+      if (!normalized.items.length) {
+        normalized.items = [{ id: makeItemId(), name: normalized.name, amount: normalized.amount }];
+      }
+
+      normalized.items = normalized.items.map((item, itemIndex) => ({
+        id: item.id || makeItemId(),
+        name: cleanCategoryName(item.name || `Item ${itemIndex + 1}`),
+        amount: Number(item.amount) || 0
+      }));
+      normalized.amount = getItemTotal(normalized);
+      return normalized;
+    }
+
+    function normalizeAllCategories() {
+      estimatorCategories = estimatorCategories.map(normalizeCategory);
+    }
+
+    function setCategoryTotal(category, targetAmount) {
+      const target = Math.max(0, Number(targetAmount) || 0);
+      if (!category.items?.length) {
+        category.items = [{ id: makeItemId(), name: category.name, amount: target }];
+      }
+
+      const current = getItemTotal(category);
+      if (current <= 0) {
+        category.items[0].amount = target;
+      } else {
+        let running = 0;
+        category.items = category.items.map((item, index) => {
+          if (index === category.items.length - 1) return item;
+          const nextAmount = Math.round(item.amount / current * target);
+          running += nextAmount;
+          return { ...item, amount: nextAmount };
+        });
+        category.items[category.items.length - 1].amount = Math.max(0, target - running);
+      }
+      category.amount = getItemTotal(category);
+    }
+
+    function getCategoryOptions() {
+      const standard = ["Housing", "Food", "Transport", "Health", "Lifestyle", "Savings"];
+      const estimatorNames = estimatorCategories.map((category) => category.name);
+      return [...new Set([...standard, ...estimatorNames])];
+    }
+
+    function getEstimatorItemRows() {
+      return estimatorCategories.flatMap((category) => category.items.map((item) => ({
+        label: item.name,
+        value: item.amount,
+        category: category.name,
+        color: category.color
+      })));
+    }
+
+    function saveLocalDb() {
+      const income = Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
+      localStorage.setItem(storageKey, JSON.stringify({ income, estimatorCategories, transactions }));
+    }
+
+    function loadLocalDb() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+        if (!saved) {
+          normalizeAllCategories();
+          return;
+        }
+        if (saved.income) {
+          Object.entries(saved.income).forEach(([key, value]) => {
+            if (inputs[key]) inputs[key].value = value;
+          });
+        }
+        if (Array.isArray(saved.estimatorCategories)) {
+          estimatorCategories = saved.estimatorCategories;
+        }
+        if (Array.isArray(saved.transactions)) {
+          transactions = saved.transactions;
+        }
+      } catch (error) {
+        console.warn("Could not load local budget data", error);
+      }
+      normalizeAllCategories();
     }
 
     function calculateBudget() {
@@ -1296,17 +1537,33 @@
 
     function renderCategoryEditor() {
       document.querySelector("#categoryEditor").innerHTML = estimatorCategories.map((category) => `
-        <article class="category-card" data-category-id="${category.id}">
+        <article class="category-card ${category.expanded ? "expanded" : ""}" data-category-id="${category.id}">
           <div class="category-row ${category.locked ? "locked" : ""}">
+            <button class="toggle-button" type="button" data-toggle-category="${category.id}" aria-label="${category.expanded ? "Collapse" : "Expand"} ${escapeHtml(category.name)}">${category.expanded ? "−" : "+"}</button>
             <label>
               <span class="label-text">Category name</span>
               <input type="text" data-category-name="${category.id}" value="${escapeHtml(category.name)}" />
             </label>
+            <span class="category-total">${money.format(category.amount)}</span>
             ${category.locked ? "" : `<button class="icon-button" type="button" data-remove-category="${category.id}" aria-label="Remove ${escapeHtml(category.name)}">×</button>`}
           </div>
-          <div class="category-slider-row">
-            <input type="range" min="${category.min}" max="${category.max}" step="${category.step}" value="${category.amount}" data-category-slider="${category.id}" />
-            <span class="value">${money.format(category.amount)}</span>
+          <div class="category-items" ${category.expanded ? "" : "hidden"}>
+            ${category.items.map((item) => `
+              <div class="spend-item-row" data-item-id="${item.id}">
+                <input type="text" data-item-name="${category.id}:${item.id}" value="${escapeHtml(item.name)}" aria-label="Spending item name" />
+                <span class="unit-field" data-prefix="$">
+                  <input type="number" min="0" step="1" data-item-amount="${category.id}:${item.id}" value="${item.amount}" aria-label="Spending item amount" />
+                </span>
+                <button class="icon-button" type="button" data-remove-item="${category.id}:${item.id}" aria-label="Remove ${escapeHtml(item.name)}">×</button>
+              </div>
+            `).join("")}
+            <div class="add-item-row">
+              <input type="text" data-new-item-name="${category.id}" placeholder="Add spend item" aria-label="New spend item name" />
+              <span class="unit-field" data-prefix="$">
+                <input type="number" min="0" step="1" data-new-item-amount="${category.id}" placeholder="0" aria-label="New spend item amount" />
+              </span>
+              <button class="icon-button" type="button" data-add-item="${category.id}" aria-label="Add spend item">+</button>
+            </div>
           </div>
         </article>
       `).join("");
@@ -1381,6 +1638,20 @@
       `).join("");
     }
 
+    function renderCategorySelects() {
+      const options = getCategoryOptions();
+      const expenseSelect = document.querySelector("#expenseCategory");
+      const filterSelect = document.querySelector("#categoryFilter");
+      const currentExpense = expenseSelect.value;
+      const currentFilter = filterSelect.value;
+
+      expenseSelect.innerHTML = options.map((option) => `<option>${escapeHtml(option)}</option>`).join("");
+      filterSelect.innerHTML = `<option value="All">All</option>${options.map((option) => `<option>${escapeHtml(option)}</option>`).join("")}`;
+
+      expenseSelect.value = options.includes(currentExpense) ? currentExpense : options[0];
+      filterSelect.value = currentFilter === "All" || options.includes(currentFilter) ? currentFilter : "All";
+    }
+
     function weekLabel(dateString) {
       const date = new Date(`${dateString}T00:00:00`);
       const first = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -1392,6 +1663,13 @@
       const view = document.querySelector("#reportView").value;
       const filter = document.querySelector("#categoryFilter").value;
       const filtered = filter === "All" ? transactions : transactions.filter((item) => item.category === filter);
+      if (view === "item") {
+        const itemRows = getEstimatorItemRows();
+        const itemFiltered = filter === "All" ? itemRows : itemRows.filter((item) => item.category === filter);
+        return itemFiltered
+          .map((item) => ({ label: item.label, value: item.value, color: item.color }))
+          .sort((a, b) => b.value - a.value);
+      }
       const grouped = filtered.reduce((acc, item) => {
         const key = view === "week" ? weekLabel(item.date) : item.category;
         acc[key] = (acc[key] || 0) + item.amount;
@@ -1408,6 +1686,7 @@
     }
 
     function renderDashboard() {
+      renderCategorySelects();
       const rows = groupedTransactions();
       const filteredTotal = rows.reduce((sum, row) => sum + row.value, 0);
       const monthlyAverage = transactions.length ? transactions.reduce((sum, item) => sum + item.amount, 0) / transactions.length : 0;
@@ -1417,7 +1696,7 @@
       document.querySelector("#reportBreakdown").innerHTML = rows.length ? rows.map((row) => `
         <article class="expense-row">
           <div>
-            <strong>${row.label}</strong>
+            <strong>${escapeHtml(row.label)}</strong>
             <span>${Math.round(row.value / filteredTotal * 100) || 0}% of current report</span>
           </div>
           <strong>${money.format(row.value)}</strong>
@@ -1441,52 +1720,130 @@
         .sort((a, b) => b.date.localeCompare(a.date))
         .map((item, index) => `
           <tr>
-            <td>${item.name}</td>
+            <td>${escapeHtml(item.name)}</td>
             <td>${item.date}</td>
-            <td>${item.category}</td>
+            <td>${escapeHtml(item.category)}</td>
             <td>${money.format(item.amount)}</td>
-            <td><button class="delete-btn" type="button" data-delete="${transactions.indexOf(item)}" aria-label="Delete ${item.name}">×</button></td>
+            <td><button class="delete-btn" type="button" data-delete="${transactions.indexOf(item)}" aria-label="Delete ${escapeHtml(item.name)}">×</button></td>
           </tr>
         `).join("");
     }
 
-    Object.values(inputs).forEach((input) => input.addEventListener("input", renderEstimator));
+    function splitItemKey(key) {
+      const [categoryId, itemId] = key.split(":");
+      return { categoryId, itemId };
+    }
+
+    function getCategoryItem(key) {
+      const { categoryId, itemId } = splitItemKey(key);
+      const category = getCategory(categoryId);
+      return { category, item: category?.items.find((entry) => entry.id === itemId) };
+    }
+
+    function updateCategoryAmount(category) {
+      category.amount = getItemTotal(category);
+    }
+
+    function refreshViews({ renderEditor = false } = {}) {
+      normalizeAllCategories();
+      if (renderEditor) renderCategoryEditor();
+      renderEstimator();
+      renderDashboard();
+      saveLocalDb();
+    }
+
+    Object.values(inputs).forEach((input) => input.addEventListener("input", () => {
+      renderEstimator();
+      renderDashboard();
+      saveLocalDb();
+    }));
 
     document.querySelector("#categoryEditor").addEventListener("input", (event) => {
       const nameInput = event.target.closest("[data-category-name]");
-      const sliderInput = event.target.closest("[data-category-slider]");
-      const id = nameInput?.dataset.categoryName || sliderInput?.dataset.categorySlider;
-      if (!id) return;
-
-      const category = getCategory(id);
-      if (!category) return;
+      const itemNameInput = event.target.closest("[data-item-name]");
+      const itemAmountInput = event.target.closest("[data-item-amount]");
 
       if (nameInput) {
+        const category = getCategory(nameInput.dataset.categoryName);
+        if (!category) return;
         category.name = cleanCategoryName(nameInput.value);
-      } else {
-        const amount = Number(sliderInput.value) || 0;
-        category.amount = amount;
-        if (amount > category.max) category.max = categoryMaxFor(amount);
-        const card = event.target.closest(".category-card");
-        card.querySelector("[data-category-slider]").value = Math.min(amount, category.max);
-        card.querySelector(".value").textContent = money.format(amount);
+        renderEstimator();
+        renderDashboard();
+        saveLocalDb();
+        return;
       }
 
-      renderEstimator();
+      if (itemNameInput) {
+        const { item } = getCategoryItem(itemNameInput.dataset.itemName);
+        if (!item) return;
+        item.name = cleanCategoryName(itemNameInput.value);
+        renderDashboard();
+        saveLocalDb();
+        return;
+      }
+
+      if (itemAmountInput) {
+        const { category, item } = getCategoryItem(itemAmountInput.dataset.itemAmount);
+        if (!category || !item) return;
+        item.amount = Number(itemAmountInput.value) || 0;
+        updateCategoryAmount(category);
+        const card = event.target.closest(".category-card");
+        card.querySelector(".category-total").textContent = money.format(category.amount);
+        renderEstimator();
+        renderDashboard();
+        saveLocalDb();
+      }
     });
 
     document.querySelector("#categoryEditor").addEventListener("change", (event) => {
-      if (!event.target.closest("[data-category-name]")) return;
-      renderCategoryEditor();
-      renderEstimator();
+      if (!event.target.closest("[data-category-name], [data-item-name]")) return;
+      refreshViews({ renderEditor: true });
     });
 
     document.querySelector("#categoryEditor").addEventListener("click", (event) => {
-      const button = event.target.closest("[data-remove-category]");
-      if (!button) return;
-      estimatorCategories = estimatorCategories.filter((category) => category.id !== button.dataset.removeCategory);
-      renderCategoryEditor();
-      renderEstimator();
+      const toggleButton = event.target.closest("[data-toggle-category]");
+      const removeCategoryButton = event.target.closest("[data-remove-category]");
+      const removeItemButton = event.target.closest("[data-remove-item]");
+      const addItemButton = event.target.closest("[data-add-item]");
+
+      if (toggleButton) {
+        const category = getCategory(toggleButton.dataset.toggleCategory);
+        if (!category) return;
+        category.expanded = !category.expanded;
+        refreshViews({ renderEditor: true });
+        return;
+      }
+
+      if (removeCategoryButton) {
+        estimatorCategories = estimatorCategories.filter((category) => category.id !== removeCategoryButton.dataset.removeCategory);
+        refreshViews({ renderEditor: true });
+        return;
+      }
+
+      if (removeItemButton) {
+        const { categoryId, itemId } = splitItemKey(removeItemButton.dataset.removeItem);
+        const targetCategory = getCategory(categoryId);
+        if (!targetCategory) return;
+        targetCategory.items = targetCategory.items.filter((item) => item.id !== itemId);
+        updateCategoryAmount(targetCategory);
+        refreshViews({ renderEditor: true });
+        return;
+      }
+
+      if (addItemButton) {
+        const category = getCategory(addItemButton.dataset.addItem);
+        const card = event.target.closest(".category-card");
+        if (!category || !card) return;
+        const nameInput = card.querySelector(`[data-new-item-name="${category.id}"]`);
+        const amountInput = card.querySelector(`[data-new-item-amount="${category.id}"]`);
+        const name = cleanCategoryName(nameInput.value);
+        const amount = Number(amountInput.value) || 0;
+        category.items.push({ id: makeItemId(), name, amount });
+        updateCategoryAmount(category);
+        nameInput.value = "";
+        amountInput.value = "";
+        refreshViews({ renderEditor: true });
+      }
     });
 
     document.querySelector("#addCategory").addEventListener("click", () => {
@@ -1497,17 +1854,15 @@
         id: makeCategoryId(),
         name: cleanCategoryName(nameInput.value),
         amount,
-        min: 0,
-        max: categoryMaxFor(amount),
-        step: 25,
         color: categoryPalette[estimatorCategories.length % categoryPalette.length],
-        locked: false
+        locked: false,
+        expanded: true,
+        items: [{ id: makeItemId(), name: cleanCategoryName(nameInput.value), amount }]
       };
       estimatorCategories.push(category);
       nameInput.value = "";
       amountInput.value = "";
-      renderCategoryEditor();
-      renderEstimator();
+      refreshViews({ renderEditor: true });
     });
 
     document.querySelectorAll("[data-preset]").forEach((button) => {
@@ -1515,10 +1870,9 @@
         Object.entries(presets[button.dataset.preset]).forEach(([key, value]) => {
           const category = getCategory(key);
           if (!category) return;
-          category.amount = value;
+          setCategoryTotal(category, value);
         });
-        renderCategoryEditor();
-        renderEstimator();
+        refreshViews({ renderEditor: true });
       });
     });
 
@@ -1542,6 +1896,8 @@
       document.querySelector("#expenseName").value = "";
       document.querySelector("#expenseAmount").value = "";
       renderDashboard();
+      renderEstimator();
+      saveLocalDb();
     });
 
     document.querySelector("#transactionTable").addEventListener("click", (event) => {
@@ -1549,33 +1905,29 @@
       if (!button) return;
       transactions.splice(Number(button.dataset.delete), 1);
       renderDashboard();
+      renderEstimator();
+      saveLocalDb();
     });
 
     document.querySelector("#reportView").addEventListener("change", renderDashboard);
     document.querySelector("#categoryFilter").addEventListener("change", renderDashboard);
     document.querySelector("#seedMonth").addEventListener("click", () => {
+      const datedItems = getEstimatorItemRows().map((item, index) => ({
+        name: item.label,
+        category: item.category,
+        amount: item.value,
+        date: `2026-07-${String(1 + index).padStart(2, "0")}`
+      }));
       transactions = [
-        { name: getCategory("rent").name, category: "Housing", amount: getCategoryAmount("rent"), date: "2026-07-01" },
-        { name: getCategory("utilities").name, category: "Housing", amount: getCategoryAmount("utilities"), date: "2026-07-06" },
-        { name: "Groceries", category: "Food", amount: 176, date: "2026-07-07" },
-        { name: "Groceries", category: "Food", amount: 154, date: "2026-07-14" },
-        { name: "Dining", category: "Food", amount: 118, date: "2026-07-19" },
-        { name: getCategory("transport").name, category: "Transport", amount: getCategoryAmount("transport"), date: "2026-07-10" },
-        { name: "Gym membership", category: "Health", amount: 78, date: "2026-07-12" },
-        { name: getCategory("lifestyle").name, category: "Lifestyle", amount: getCategoryAmount("lifestyle"), date: "2026-07-16" },
+        ...datedItems,
         { name: "Savings transfer", category: "Savings", amount: getNumber("savingsGoal"), date: "2026-07-22" }
       ];
-      estimatorCategories.filter((category) => !category.locked).forEach((category, index) => {
-        transactions.push({
-          name: category.name,
-          category: "Lifestyle",
-          amount: category.amount,
-          date: `2026-07-${String(23 + index).padStart(2, "0")}`
-        });
-      });
       renderDashboard();
+      renderEstimator();
+      saveLocalDb();
     });
 
+    loadLocalDb();
     renderCategoryEditor();
     renderEstimator();
     renderDashboard();
