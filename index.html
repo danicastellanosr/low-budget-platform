@@ -699,6 +699,154 @@
       margin-bottom: 12px;
     }
 
+    .trip-plan {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.78fr) minmax(0, 1.22fr);
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 247, 249, 0.78)),
+        radial-gradient(circle at 82% 18%, rgba(143, 190, 166, 0.2), transparent 34%);
+    }
+
+    .trip-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      align-content: start;
+    }
+
+    .trip-heading {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      min-width: 0;
+    }
+
+    .trip-heading strong {
+      font-size: 15px;
+    }
+
+    .trip-heading span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+      text-align: right;
+    }
+
+    .trip-fields label:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .trip-visual {
+      display: grid;
+      gap: 10px;
+      align-content: center;
+      min-width: 0;
+    }
+
+    .trip-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .trip-summary div {
+      padding: 9px;
+      border: 1px solid rgba(43, 36, 41, 0.08);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .trip-summary span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .trip-summary strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .trip-progress {
+      position: relative;
+      min-height: 88px;
+      padding: 16px 14px 12px;
+      border: 1px solid rgba(43, 36, 41, 0.08);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.62);
+      overflow: hidden;
+    }
+
+    .trip-track {
+      position: relative;
+      height: 12px;
+      margin-top: 22px;
+      border-radius: 999px;
+      background: rgba(43, 36, 41, 0.08);
+    }
+
+    .trip-fill {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #8fbea6, var(--accent-500));
+      transition: width 180ms ease;
+    }
+
+    .trip-marker {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      background: var(--accent-700);
+      box-shadow: 0 8px 18px rgba(166, 76, 115, 0.18);
+      transform: translate(-50%, -50%);
+      font-size: 13px;
+      font-weight: 900;
+      transition: left 180ms ease;
+    }
+
+    .trip-milestones {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .trip-message {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .contribution-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
     .transaction-table {
       width: 100%;
       border-collapse: collapse;
@@ -913,6 +1061,14 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .trip-plan {
+        grid-template-columns: 1fr;
+      }
+
+      .trip-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .transaction-form button {
         grid-column: 1 / -1;
       }
@@ -939,7 +1095,13 @@
       .metric-grid,
       body.dashboard-mode .metric-grid,
       .insight-grid,
-      .transaction-form {
+      .transaction-form,
+      .trip-fields,
+      .trip-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .contribution-row {
         grid-template-columns: 1fr;
       }
 
@@ -1161,6 +1323,61 @@
                 <button class="soft-button" type="button" id="seedMonth">Use Sample Month</button>
               </div>
 
+              <section class="trip-plan" aria-label="Trip savings plan">
+                <div class="trip-heading">
+                  <strong>Trip Savings Plan</strong>
+                  <span>Protected travel money, separate from emergency buffer and main savings.</span>
+                </div>
+                <div class="trip-fields">
+                  <label>
+                    <span class="label-text">Trip goal</span>
+                    <input id="tripName" type="text" value="Japan trip" />
+                  </label>
+                  <label>
+                    <span class="label-text">Goal amount</span>
+                    <span class="unit-field" data-prefix="$">
+                      <input id="tripGoal" type="number" min="0" step="50" value="2500" />
+                    </span>
+                  </label>
+                  <label>
+                    <span class="label-text">Saved for trip</span>
+                    <span class="unit-field" data-prefix="$">
+                      <input id="tripSaved" type="number" min="0" step="25" value="400" />
+                    </span>
+                  </label>
+                  <label>
+                    <span class="label-text">Target date</span>
+                    <input id="tripDeadline" type="date" value="2026-12-15" />
+                  </label>
+                  <div class="contribution-row">
+                    <label>
+                      <span class="label-text">Add contribution</span>
+                      <span class="unit-field" data-prefix="$">
+                        <input id="tripContribution" type="number" min="0" step="25" value="100" />
+                      </span>
+                    </label>
+                    <button class="primary-button" type="button" id="addTripContribution">Add</button>
+                  </div>
+                </div>
+                <div class="trip-visual">
+                  <div class="trip-summary" id="tripSummary"></div>
+                  <div class="trip-progress">
+                    <p class="trip-message" id="tripMessage"></p>
+                    <div class="trip-track" aria-hidden="true">
+                      <i class="trip-fill" id="tripFill"></i>
+                      <b class="trip-marker" id="tripMarker">GO</b>
+                    </div>
+                    <div class="trip-milestones">
+                      <span>Start</span>
+                      <span>25%</span>
+                      <span>50%</span>
+                      <span>75%</span>
+                      <span>Trip ready</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               <div class="split">
                 <div class="canvas-wrap">
                   <canvas id="reportChart" width="760" height="320" aria-label="Expense report chart"></canvas>
@@ -1204,6 +1421,14 @@
       benefits: document.querySelector("#benefits"),
       buffer: document.querySelector("#buffer"),
       savingsGoal: document.querySelector("#savingsGoal")
+    };
+
+    const tripInputs = {
+      name: document.querySelector("#tripName"),
+      goal: document.querySelector("#tripGoal"),
+      saved: document.querySelector("#tripSaved"),
+      deadline: document.querySelector("#tripDeadline"),
+      contribution: document.querySelector("#tripContribution")
     };
 
     const categories = [
@@ -1306,6 +1531,13 @@
     ];
 
     let transactions = structuredClone(defaultTransactions);
+    let tripPlan = {
+      name: "Japan trip",
+      goal: 2500,
+      saved: 400,
+      deadline: "2026-12-15",
+      contribution: 100
+    };
 
     const getNumber = (id) => Number(inputs[id].value) || 0;
     const getCategory = (id) => estimatorCategories.find((category) => category.id === id);
@@ -1400,7 +1632,8 @@
 
     function saveLocalDb() {
       const income = Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value]));
-      localStorage.setItem(storageKey, JSON.stringify({ income, estimatorCategories, transactions }));
+      const trip = Object.fromEntries(Object.entries(tripInputs).map(([key, input]) => [key, input.value]));
+      localStorage.setItem(storageKey, JSON.stringify({ income, estimatorCategories, transactions, tripPlan: trip }));
     }
 
     function loadLocalDb() {
@@ -1421,10 +1654,64 @@
         if (Array.isArray(saved.transactions)) {
           transactions = saved.transactions;
         }
+        if (saved.tripPlan) {
+          tripPlan = { ...tripPlan, ...saved.tripPlan };
+        }
       } catch (error) {
         console.warn("Could not load local budget data", error);
       }
       normalizeAllCategories();
+      Object.entries(tripPlan).forEach(([key, value]) => {
+        if (tripInputs[key]) tripInputs[key].value = value;
+      });
+    }
+
+    function getTripPlan() {
+      return {
+        name: cleanCategoryName(tripInputs.name.value || "Trip"),
+        goal: Math.max(0, Number(tripInputs.goal.value) || 0),
+        saved: Math.max(0, Number(tripInputs.saved.value) || 0),
+        deadline: tripInputs.deadline.value,
+        contribution: Math.max(0, Number(tripInputs.contribution.value) || 0)
+      };
+    }
+
+    function getTripMonthsLeft(deadlineValue) {
+      if (!deadlineValue) return 0;
+      const today = new Date();
+      const deadline = new Date(`${deadlineValue}T00:00:00`);
+      if (Number.isNaN(deadline.getTime())) return 0;
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const days = Math.max(0, Math.ceil((deadline - today) / msPerDay));
+      return Math.max(1, Math.ceil(days / 30));
+    }
+
+    function renderTripPlan() {
+      const trip = getTripPlan();
+      const remaining = Math.max(0, trip.goal - trip.saved);
+      const monthsLeft = getTripMonthsLeft(trip.deadline);
+      const monthlyNeed = monthsLeft ? Math.ceil(remaining / monthsLeft) : remaining;
+      const progress = trip.goal > 0 ? Math.min(100, Math.round(trip.saved / trip.goal * 100)) : 0;
+      const isReady = progress >= 100;
+
+      document.querySelector("#tripSummary").innerHTML = [
+        ["Saved", money.format(trip.saved)],
+        ["Goal", money.format(trip.goal)],
+        ["Time left", monthsLeft ? `${monthsLeft} mo` : "Set date"],
+        ["Needed/mo", money.format(monthlyNeed)]
+      ].map(([label, value]) => `
+        <div>
+          <span>${label}</span>
+          <strong>${value}</strong>
+        </div>
+      `).join("");
+
+      document.querySelector("#tripFill").style.width = `${progress}%`;
+      document.querySelector("#tripMarker").style.left = `${progress}%`;
+      document.querySelector("#tripMarker").textContent = isReady ? "OK" : `${progress}%`;
+      document.querySelector("#tripMessage").textContent = isReady
+        ? `${trip.name} is funded without touching Laura's emergency buffer or core savings.`
+        : `Save ${money.format(monthlyNeed)} per month for ${trip.name}; keep this separate from emergency buffer and main savings.`;
     }
 
     function calculateBudget() {
@@ -1699,6 +1986,7 @@
 
     function renderDashboard() {
       renderCategorySelects();
+      renderTripPlan();
       const rows = groupedTransactions();
       const filteredTotal = rows.reduce((sum, row) => sum + row.value, 0);
       const monthlyAverage = transactions.length ? transactions.reduce((sum, item) => sum + item.amount, 0) / transactions.length : 0;
@@ -1769,6 +2057,18 @@
       renderDashboard();
       saveLocalDb();
     }));
+
+    Object.values(tripInputs).forEach((input) => input.addEventListener("input", () => {
+      renderTripPlan();
+      saveLocalDb();
+    }));
+
+    document.querySelector("#addTripContribution").addEventListener("click", () => {
+      const trip = getTripPlan();
+      tripInputs.saved.value = trip.saved + trip.contribution;
+      renderTripPlan();
+      saveLocalDb();
+    });
 
     document.querySelector("#categoryEditor").addEventListener("input", (event) => {
       const nameInput = event.target.closest("[data-category-name]");
